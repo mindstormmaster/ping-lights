@@ -103,7 +103,10 @@ void addPing(int ping)
 uint32_t PingWheel(int ping) {
   int WheelPos = (ping - PING_EXPECTED) * (BRIGHTNESS / (PING_MAX - PING_EXPECTED));
 
-  if (WheelPos < 0) {
+  if (ping < 0) {
+    // ping returns -1 on timeout
+    return leds.Color(BRIGHTNESS, 0, 0);
+  } else if (WheelPos < 0) {
     return leds.Color(0, 0, 0);
   } else if (WheelPos <= BRIGHTNESS/2) {
     return leds.Color(0, WheelPos, 0);
