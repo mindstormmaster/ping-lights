@@ -39,6 +39,10 @@ void setup()
   leds.begin();  // Call this to start up the LED strip.
   clearLEDs();   // This function, defined below, turns all LEDs off...
   leds.show();   // ...but the LEDs don't actually update until you call this.
+
+  for (int i = 0; i < PING_COUNT; i++) {
+    pingHistory[i] = 0;
+  }
   
   // initializeESP8266() verifies communication with the WiFi
   // shield, and sets it up.
