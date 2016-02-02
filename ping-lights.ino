@@ -44,12 +44,18 @@ void setup()
     pingHistory[i] = 0;
   }
   
+  leds.setPixelColor(LED_COUNT-1, leds.Color(0, 0, 15));
+  leds.show();
+  
   // initializeESP8266() verifies communication with the WiFi
   // shield, and sets it up.
   initializeESP8266();
 
   // connectESP8266() connects to the defined WiFi network.
   connectESP8266();
+  
+  leds.setPixelColor(LED_COUNT-1, leds.Color(15, 15, 0));
+  leds.show();
 
   // displayConnectInfo prints the Shield's local IP
   // and the network it's connected to.
@@ -197,7 +203,16 @@ void connectESP8266()
     if (retVal < 0)
     {
       Serial.println(F("Error connecting"));
+      leds.setPixelColor(LED_COUNT-1, leds.Color(15, 0, 0));
+      leds.show();
+      errorLoop();
     }
+  }
+}
+
+void errorLoop()
+{
+  for (;;) {    
   }
 }
 
@@ -213,6 +228,9 @@ void displayConnectInfo()
   {
     Serial.print(F("Connected to: "));
     Serial.println(connectedSSID);
+  } else {
+      leds.setPixelColor(LED_COUNT-1, leds.Color(15, 0, 0));
+      leds.show();    
   }
 
   // esp8266.localIP returns an IPAddress variable with the
