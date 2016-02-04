@@ -14,7 +14,8 @@ array.
 #define LED_COUNT 40
 #define PING_COUNT LED_COUNT-1
 
-#define BRIGHTNESS 64
+#define BRIGHTNESS 16
+#define ERR_BRIGHTNESS 32
 #define PING_EXPECTED 15
 #define PING_MAX 50
 
@@ -40,8 +41,9 @@ void setup()
   clearLEDs();   // This function, defined below, turns all LEDs off...
   leds.show();   // ...but the LEDs don't actually update until you call this.
 
+  // set all LEDs to -1
   for (int i = 0; i < PING_COUNT; i++) {
-    pingHistory[i] = 0;
+    pingHistory[i] = -1;
   }
   
   leds.setPixelColor(LED_COUNT-1, leds.Color(0, 0, 15));
@@ -74,12 +76,21 @@ void loop()
 
   addPing(ping);
 
-  delay(500);
-  leds.setPixelColor(LED_COUNT-1, leds.Color(0, 15, 0));
-  leds.show();
-  delay(500);
-  leds.setPixelColor(LED_COUNT-1, leds.Color(0, 0, 0));
-  leds.show();
+  for (int d = 0; d < 10; d++) {
+    if (d < 5) {
+      leds.setPixelColor(LED_COUNT-1, leds.Color(0, 15, 0));
+    } else {
+      leds.setPixelColor(LED_COUNT-1, leds.Color(0, 0, 0));
+    }
+    
+    // set colors
+    for (int i = 0; i < PING_COUNT; i++) {
+      leds.setPixelColor(i, PingWheel(pingHistory[i], d));
+    }  
+    leds.show();
+    delay(100);
+  }
+  
 }
 
 void addPing(int ping)
@@ -90,32 +101,28 @@ void addPing(int ping)
     pingHistory[i] = pingHistory[i-1];
   }
   pingHistory[0] = pingAdjusted;
-
-  // set colors
-  for (int i = 0; i < PING_COUNT; i++) {
-    leds.setPixelColor(i, PingWheel(pingHistory[i]));
-  }  
-  leds.show();
-  
 }
 
 // green to red gradient
-uint32_t PingWheel(int ping) {
-  int WheelPos = (ping - PING_EXPECTED) * (BRIGHTNESS / (PING_MAX - PING_EXPECTED));
+uint32_t PingWheel(int ping, int blinkCounter) {
+  int WheelPos = (int)((ping - PING_EXPECTED) * ((float)BRIGHTNESS / (PING_MAX - PING_EXPECTED)));
 
   if (ping < 0) {
-    // ping returns -1 on timeout
-    return leds.Color(BRIGHTNESS, 0, 0);
+    // ping return -1 on error
+    return leds.Color(0, 0, BRIGHTNESS);
+  } else if (ping == 0) {
+    // ping returns 0 on timeout
+    if (blinkCounter % 2 == 0) {
+      return leds.Color(ERR_BRIGHTNESS, 0, 0);
+    } else {
+      return leds.Color(5, 0, 0);
+    }
   } else if (WheelPos < 0) {
-    return leds.Color(0, 0, 0);
-  } else if (WheelPos <= BRIGHTNESS/2) {
-    return leds.Color(0, WheelPos, 0);
+    return leds.Color(0, BRIGHTNESS, 0);
   } else if (WheelPos <= BRIGHTNESS) {
     return leds.Color(WheelPos, BRIGHTNESS-WheelPos, 0);
-  } else if (WheelPos <= BRIGHTNESS*2) {
-    return leds.Color(BRIGHTNESS, 0, 0);
   } else {
-    return leds.Color(BRIGHTNESS, 0, 0);
+    return leds.Color(ERR_BRIGHTNESS, 0, 0);
   }  
 }
 
